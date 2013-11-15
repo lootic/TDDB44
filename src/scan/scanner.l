@@ -14,6 +14,14 @@ int column = 0;
 
 extern YYLTYPE yylloc; // Used for position information, see below.
 
+
+//my function, we have it here for convinience
+static void incPosition(void) {
+	yylloc.first_line=yylineno;
+	yylloc.first_column=column;
+	column += yyleng;
+}
+
 %}
 
 %option yylineno
@@ -40,6 +48,7 @@ DIGIT [0-9]
                          column += yyleng;
                          return T_DOT;
 				}
+
 ;				{yylloc.first_line=yylineno;
  				 yylloc.first_column=column;
                          column += yyleng;
@@ -121,94 +130,177 @@ DIGIT [0-9]
                          column += yyleng;
                          return T_NOTEQ;	
 				}
-of				{
-				    
-				}
-if				{return(T_IF);
-				    
-				}
-do				{
-				    
-				}
-or				{
-				    
-				}
-var				{
-				    
-				}
-end				{
-				    
-				}
-and				{
-				    
-				}
-div				{
-				    
-				}
-mod				{
-				    
-				}
-not				{
-				    
-				}
-then				{
-				    
-				}
-else				{
-				    
-				}
-const				{
-				    
-				}
-array				{
-				    
-				}
-begin				{
-				    
-				}
-while				{
-				    
-				}
-elsif				{
-				    
-				}
-return				{
-				    
-				}
-program				{
-				    
-				}
-function			{
-				    
-				}
-procedure			{
-				    
-				}
+of {
+	incPosition();
+	return T_OF;
+}
+
+if {
+	incPosition();
+	return(T_IF);			    
+}
+
+do {
+	incPosition();
+	return T_DO;
+}
+
+or {
+	incPosition();
+	return T_OR;
+}
+
+var {
+	incPosition();
+	return T_VAR;
+}
+
+end {
+	incPosition();
+	return T_END;				    
+}
+
+and {
+	incPosition();
+	return T_AND;				    
+}
+
+div	{    
+	incPosition();
+	return T_IDIV;
+}
+
+mod	{
+	incPosition();
+	return T_MOD;
+}
+
+not {
+	incPosition();
+	return T_NOT;
+}
+
+then {
+	incPosition();
+	return T_THEN;
+}
+
+else {
+	incPosition();
+	return T_ELSE;
+}
+
+const {
+	incPosition();
+	return T_CONST;
+}
+
+array {
+	incPosition();
+	return T_ARRAY;
+}
+
+begin {
+	incPosition();
+	return T_BEGIN;				    
+}
+
+while {
+	incPosition();
+	return T_WHILE;
+}
+
+elsif {
+	incPosition();
+	return T_ELSIF;
+}
+
+return {
+	incPosition();
+	return T_RETURN;
+}
+
+program {
+	incPosition();
+	return T_PROGRAM;
+}
+
+function {
+	incPosition();
+	return T_FUNCTION;
+}
+
+procedure {
+	incPosition();	
+	return T_PROCEDURE;
+}
+
+"[\n \t]*" {
+	incPosition();
+}
+
+"([^']|'')*" {
+	incPosition();
+}
+
+"[a-Z_][0-9a-Z_]*" {
+	incPosition();
+	return T_IDENT;
+}
+
+"\{.*\}" {
+	incPosition();
+}
+
+"('[^']*')*" {
+	incPosition();
+	return T_STRINGCONST;
+}
+
+"[0-9]+" {
+	incPosition();
+	return T_INTNUM;
+}
+
+"([0-9]+\.?|\.[0-9]+)[0-9]*(e|E)-?[0-9]+" {
+	incPosition();
+	return T_REALNUM;
+}
 
 
-\/\/.*$				column = 0; /* Skip single-line comment */
-"/\*"				{
-                                    column += yyleng;
-                                    BEGIN(c_comment);
-                                }
+
+\/\/.*$	column = 0; /* Skip single-line comment */
+"/\*"	{
+	column += yyleng;
+	BEGIN(c_comment);
+}
 
 <c_comment>
 {
-    "\*/"			{
-                                    column += 2;
-                                    BEGIN(INITIAL);
-                                }
-    "/\*"			{
-				    column += 2;
-				    yyerror("Suspicious comment");
-				}
-    [^\n]			column++; /* Skip stuff in comments */
-    \n				column = 0; 
-    <<EOF>>			{
-				    yyerror("Unterminated comment");
-				    yyterminate();
-				}
+	"\*/"	{
+		column += 2;
+		BEGIN(INITIAL);
+	}
+    "/\*"	{
+		column += 2;
+		yyerror("Suspicious comment");
+	}
+	[^\n]	column++; /* Skip stuff in comments */
+    \n		column = 0; 
+    <<EOF>>	{
+		yyerror("Unterminated comment");
+		yyterminate();
+	}
 }
 
-<<EOF>>				yyterminate();
-.				yyerror("Illegal character");
+<<EOF>> {
+	yyterminate();
+}
+
+. {
+	yyerror("Illegal character");
+}
+
+
+
+
