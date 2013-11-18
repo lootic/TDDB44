@@ -19,7 +19,7 @@ $(OUTFILE) : $(OBJECTS)
 	$(CC) -o $(OUTFILE) $(OBJECTS) $(LDFLAGS)
 
 scanner.cc : scanner.l
-	flex scanner.l
+	flex scanner2.l
 
 scanner.o : scanner.cc
 	$(CC) $(GCFLAGS) -c $<
