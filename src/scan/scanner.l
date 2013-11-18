@@ -39,19 +39,6 @@ ID [_a-zA-Z][_a-zA-Z0-9]*
    identifiers, integers, reals, and whitespace. */
 %%
 
-{LETTER} {
-	yylloc.first_line=yylineno;
- 	yylloc.first_column=column;
-    column += yyleng;
-}
-
-{DIGIT} {
-	yylloc.first_line=yylineno;
- 	yylloc.first_column=column;
-    column += yyleng;
-}
-
-
 {
 	"}"	{
 		column += 2;
@@ -261,6 +248,18 @@ procedure {
 "[a-Z_][0-9a-Z_]*" {
 	printf("hello");
 	return T_IDENT;
+}
+
+{LETTER} {
+	yylloc.first_line=yylineno;
+ 	yylloc.first_column=column;
+    column += yyleng;
+}
+
+{DIGIT} {
+	yylloc.first_line=yylineno;
+ 	yylloc.first_column=column;
+    column += yyleng;
 }
 
 
