@@ -38,6 +38,21 @@ DIGIT [0-9]
    identifiers, integers, reals, and whitespace. */
 %%
 
+"\{.*\}" {
+}
+
+"('[^']*')*" {
+	return T_STRINGCONST;
+}
+
+"[0-9]+" {
+	return T_INTNUM;
+}
+
+"([0-9]+\.?|\.[0-9]+)[0-9]*(e|E)-?[0-9]+" {
+	return T_REALNUM;
+}
+
 \.				{yylloc.first_line=yylineno;
  				 yylloc.first_column=column;
                          column += yyleng;
@@ -219,22 +234,6 @@ procedure {
 	printf("hello");
 	return T_IDENT;
 }
-
-"\{.*\}" {
-}
-
-"('[^']*')*" {
-	return T_STRINGCONST;
-}
-
-"[0-9]+" {
-	return T_INTNUM;
-}
-
-"([0-9]+\.?|\.[0-9]+)[0-9]*(e|E)-?[0-9]+" {
-	return T_REALNUM;
-} 
-
 
 
 \/\/.*$	column = 0; /* Skip single-line comment */
