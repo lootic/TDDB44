@@ -2,6 +2,7 @@
 #define __SCANNER_HH__
 
 #include "symtab.hh"
+#include "error.hh"
 
 typedef union {
     int           ival;       /* Value of a T_INTNUM */

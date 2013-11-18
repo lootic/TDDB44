@@ -16,11 +16,6 @@ extern YYLTYPE yylloc; // Used for position information, see below.
 
 
 //my function, we have it here for convinience
-static void incPosition(void) {
-	yylloc.first_line=yylineno;
-	yylloc.first_column=column;
-	column += yyleng;
-}
 
 %}
 
@@ -131,139 +126,112 @@ DIGIT [0-9]
                          return T_NOTEQ;	
 				}
 of {
-	incPosition();
 	return T_OF;
 }
 
 if {
-	incPosition();
 	return(T_IF);			    
 }
 
 do {
-	incPosition();
 	return T_DO;
 }
 
 or {
-	incPosition();
 	return T_OR;
 }
 
 var {
-	incPosition();
 	return T_VAR;
 }
 
 end {
-	incPosition();
 	return T_END;				    
 }
 
 and {
-	incPosition();
 	return T_AND;				    
 }
 
 div	{    
-	incPosition();
 	return T_IDIV;
 }
 
 mod	{
-	incPosition();
 	return T_MOD;
 }
 
 not {
-	incPosition();
 	return T_NOT;
 }
 
 then {
-	incPosition();
 	return T_THEN;
 }
 
 else {
-	incPosition();
 	return T_ELSE;
 }
 
 const {
-	incPosition();
 	return T_CONST;
 }
 
 array {
-	incPosition();
 	return T_ARRAY;
 }
 
 begin {
-	incPosition();
 	return T_BEGIN;				    
 }
 
 while {
-	incPosition();
 	return T_WHILE;
 }
 
 elsif {
-	incPosition();
 	return T_ELSIF;
 }
 
 return {
-	incPosition();
 	return T_RETURN;
 }
 
 program {
-	incPosition();
 	return T_PROGRAM;
 }
 
 function {
-	incPosition();
 	return T_FUNCTION;
 }
 
 procedure {
-	incPosition();	
 	return T_PROCEDURE;
 }
 
-"[\n \t]*" {
-	incPosition();
+"[\n \t]+" {
 }
 
 "([^']|'')*" {
-	incPosition();
 }
 
 "[a-Z_][0-9a-Z_]*" {
-	incPosition();
+	printf("hello");
 	return T_IDENT;
 }
 
 "\{.*\}" {
-	incPosition();
 }
 
 "('[^']*')*" {
-	incPosition();
 	return T_STRINGCONST;
 }
 
 "[0-9]+" {
-	incPosition();
 	return T_INTNUM;
 }
 
 "([0-9]+\.?|\.[0-9]+)[0-9]*(e|E)-?[0-9]+" {
-	incPosition();
 	return T_REALNUM;
 }
 
@@ -302,5 +270,4 @@ procedure {
 }
 
 
-
-
+%%
