@@ -29,8 +29,9 @@ extern YYLTYPE yylloc; // Used for position information, see below.
  * If you want to include any flex declarations, this is where to do it. */
 %x c_comment
 DIGIT [0-9]
-/* {DIGIT}+"."{DIGIT}*
- ID [a-z][a-z0-9]* */
+/* {DIGIT}+"."{DIGIT}*/
+LETTER [_a-zA-Z]
+ID [_a-zA-Z][_a-zA-Z0-9]*
 /* Position information is entered into the yylloc variable, so we will be
    able to generate good error messages later in later phases. */
 /* Your code should be entered below the %%. Expressions to handle the 
@@ -38,7 +39,34 @@ DIGIT [0-9]
    identifiers, integers, reals, and whitespace. */
 %%
 
-"\{.*\}" {
+{LETTER} {
+	yylloc.first_line=yylineno;
+ 	yylloc.first_column=column;
+    column += yyleng;
+}
+
+{DIGIT} {
+	yylloc.first_line=yylineno;
+ 	yylloc.first_column=column;
+    column += yyleng;
+}
+
+
+{
+	"}"	{
+		column += 2;
+		BEGIN(INITIAL);
+	}
+    "{"	{
+		column += 2;
+		yyerror("Suspicious comment");
+	}
+	[^\n]	column++; /* Skip stuff in comments */
+    \n		column = 0; 
+    <<EOF>>	{
+		yyerror("Unterminated comment");
+		yyterminate();
+	}
 }
 
 "('[^']*')*" {
