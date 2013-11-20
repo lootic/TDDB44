@@ -18,7 +18,7 @@ all : $(OUTFILE)
 $(OUTFILE) : $(OBJECTS)
 	$(CC) -o $(OUTFILE) $(OBJECTS) $(LDFLAGS)
 
-scanner.cc : scanner.l
+scanner.cc : scanner2.l
 	flex scanner2.l
 
 scanner.o : scanner.cc

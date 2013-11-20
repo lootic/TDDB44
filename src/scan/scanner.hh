@@ -3,6 +3,7 @@
 
 #include "symtab.hh"
 #include "error.hh"
+#include <stdlib.h>
 
 typedef union {
     int           ival;       /* Value of a T_INTNUM */
