@@ -37,8 +37,9 @@ EXPONENT [eE]-?[0-9]+
 REAL ({FLOAT}{EXPONENT}?)|{INTEGER}{EXPONENT}
 WHITESPACE [\t ]
 ID {LETTER}({LETTER}|{DIGIT})*
-PASCALCOMMENT \{[^\}]*\}
-STRING '([^']|'')*'
+PASCAL_COMMENT \{[^\}]*\}
+STRING '([^'\n]|'')*'
+NEWLINE_STRING '([^'\n]|'')*\n
 
 %%
 
@@ -231,8 +232,15 @@ do {
 	return T_DO;
 }
 
-{PASCALCOMMENT} {
+{PASCAL_COMMENT} {
 	updatePosition();
+}
+
+{NEWLINE_STRING} {
+	column = 0;
+	yylloc.first_column=column;
+	yylloc.first_line=yylineno;
+	yyerror("Newline in string");
 }
 
 {STRING} {
