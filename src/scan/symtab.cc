@@ -573,6 +573,7 @@ sym_index symbol_table::close_scope() {
 		symbol = sym_table[i];
 		if(symbol->hash_link != -1) {
 			hash_table[symbol->back_link] = symbol->hash_link;
+			symbol->hash_link = -1;
 		}
 	}
 	
