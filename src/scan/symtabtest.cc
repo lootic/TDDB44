@@ -17,7 +17,7 @@ using namespace std;
 #define TEST_REDECLARATION 0
 
 // Test all enter_ methods in the symbol table.
-#define TEST_TRACE2 1
+#define TEST_TRACE2 0
 
 
 YYSTYPE yylval;

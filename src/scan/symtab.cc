@@ -27,7 +27,6 @@ sym_index     real_type;
     symbols used. */
 symbol_table::symbol_table() {
 
-	cout << "initializing" << endl;
     int i; // counter, later used when initialising hash_table, block_table,
            // sym_table. See below.
 
@@ -581,7 +580,6 @@ sym_index symbol_table::close_scope() {
 sym_index symbol_table::lookup_symbol(const pool_index pool_p) {  //%% OK
     // Your code here. 
 	sym_index sym_p = hash_table[hash(pool_p)];
-	cout << sym_p << endl;
 	while(sym_p >= current_environment() && sym_p != NULL_SYM) {
 		if(pool_compare(pool_p, sym_table[sym_p]->id) == 0) {
 			return sym_p;
@@ -668,41 +666,30 @@ void symbol_table::set_symbol_type(const sym_index sym_p,
    
 sym_index symbol_table::install_symbol(const pool_index pool_p,
 				       const sym_type tag) {
-	cout << "install_symbol" << endl;
 	symbol* symbol;
 
-	++sym_pos;
-	
+	sym_pos++;
 
 	switch(tag) {
 	case SYM_ARRAY:
-		cout << "array" << endl;
 		symbol = new array_symbol(pool_p);
 		break;
 	case SYM_FUNC:
-		cout << "func" << endl;
 		symbol = new function_symbol(pool_p);
-		open_scope();
 		break;
 	case SYM_PROC:
-		cout << "proc" << endl;
 		symbol = new procedure_symbol(pool_p);
-		open_scope();
 		break;
 	case SYM_VAR:
-		cout << "var" << endl;
 		symbol = new variable_symbol(pool_p);
 		break;
 	case SYM_PARAM:
-		cout << "param" << endl;
 		symbol = new parameter_symbol(pool_p);
 		break;
     case SYM_CONST:		
-		cout << "const" << endl;
 		symbol = new constant_symbol(pool_p);
 		break;
 	case SYM_NAMETYPE:		
-		cout << "nametype" << endl;
 		symbol = new nametype_symbol(pool_p);
 		break;
 	case SYM_UNDEF:
@@ -712,15 +699,20 @@ sym_index symbol_table::install_symbol(const pool_index pool_p,
 		cout << "Illegal tag" << endl;
 	}
 
+	if(current_level == 0 || tag == SYM_FUNC || tag == SYM_PROC) {
+		symbol->offset = 0;
+	} else {	
+		symbol->offset = (sym_pos - current_environment())*4;
+	}
+
 	symbol->back_link = hash(pool_p);
 	symbol->hash_link = hash_table[symbol->back_link];
 
 	hash_table[symbol->back_link] = sym_pos;
 	sym_table[sym_pos] = symbol;
-	symbol->offset = (sym_pos - current_environment())*4;
+	
 	symbol->level = current_level;
 
-	cout << "returning" << endl;
 
 
 	// Return index to the symbol we just created.
