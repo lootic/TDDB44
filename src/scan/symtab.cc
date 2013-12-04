@@ -543,6 +543,7 @@ char *symbol_table::fix_string(const char *old_str) {
 
  /* Return sym_index pointer to the current environment, ie, block level. */
  sym_index symbol_table::current_environment() {
+	cout << block_table[current_level] << endl;
     return block_table[current_level];
 }
 
@@ -550,6 +551,8 @@ char *symbol_table::fix_string(const char *old_str) {
 /* Increase the current_level by one. */
  void symbol_table::open_scope() {
  	/*  Your code here. Probably done */
+
+	cout << current_level << " " << sym_pos << endl;
 
 	//point at last symbol within a scope
 	block_table[current_level] = sym_pos;
@@ -564,11 +567,22 @@ char *symbol_table::fix_string(const char *old_str) {
 sym_index symbol_table::close_scope() {
   /*  Your code here. */
 	//repoint hash table where needed
+	symbol* symbol;
+
+	for(int i=sym_pos; i >=current_environment(); --i) {
+		symbol = sym_table[i];
+		if(symbol->hash_link != -1) {
+			hash_table[symbol->back_link] = symbol->hash_link;
+		}
+	}
 	
 	//lower current level, let whatever garbage that is in block_table stay 
 	//there, it does no harm.
 	--current_level;
-   return NULL_SYM;
+
+
+
+   return block_table[current_level];
 }
 
 
@@ -668,7 +682,7 @@ sym_index symbol_table::install_symbol(const pool_index pool_p,
 				       const sym_type tag) {
 	symbol* symbol;
 
-	sym_pos++;
+	++sym_pos;
 
 	switch(tag) {
 	case SYM_ARRAY:
@@ -699,21 +713,16 @@ sym_index symbol_table::install_symbol(const pool_index pool_p,
 		cout << "Illegal tag" << endl;
 	}
 
-	if(current_level == 0 || tag == SYM_FUNC || tag == SYM_PROC) {
-		symbol->offset = 0;
-	} else {	
-		symbol->offset = (sym_pos - current_environment())*4;
-	}
-
 	symbol->back_link = hash(pool_p);
 	symbol->hash_link = hash_table[symbol->back_link];
 
 	hash_table[symbol->back_link] = sym_pos;
 	sym_table[sym_pos] = symbol;
-	
+
+	symbol->offset = (sym_pos - current_environment())*4;
+
+	cout << "the current environment: " << current_environment() << endl;
 	symbol->level = current_level;
-
-
 
 	// Return index to the symbol we just created.
     return sym_pos;
