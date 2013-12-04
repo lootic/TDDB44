@@ -26,6 +26,8 @@ sym_index     real_type;
     a table of pointers to symbols. This is due to the various subclasses of
     symbols used. */
 symbol_table::symbol_table() {
+
+	cout << "initializing" << endl;
     int i; // counter, later used when initialising hash_table, block_table,
            // sym_table. See below.
 
@@ -385,7 +387,7 @@ char *symbol_table::capitalize(const char *s) {
  
 pool_index symbol_table::pool_install(char *s) {
     long old_pos;       // The return value, ie, the start of the string.
-    
+
     // Make sure pool is not full. If it is, double pool size.
     if(pool_pos + (int)strlen(s) >= pool_length) {
 	char *tmp_pool = new char[2*pool_length]; // Tmp storage.
@@ -548,13 +550,25 @@ char *symbol_table::fix_string(const char *old_str) {
 
 /* Increase the current_level by one. */
  void symbol_table::open_scope() {
- /*  Your code here. */
+ 	/*  Your code here. Probably done */
+
+	//point at last symbol within a scope
+	block_table[current_level] = sym_pos;
+
+
+	//set current_level higher
+	++current_level;
 }
 
 
 /* Decrease the current_level by one. Return sym_index to new environment. */
 sym_index symbol_table::close_scope() {
   /*  Your code here. */
+	//repoint hash table where needed
+	
+	//lower current level, let whatever garbage that is in block_table stay 
+	//there, it does no harm.
+	--current_level;
    return NULL_SYM;
 }
 
@@ -566,6 +580,15 @@ sym_index symbol_table::close_scope() {
     follows hash links outwards. */
 sym_index symbol_table::lookup_symbol(const pool_index pool_p) {  //%% OK
     // Your code here. 
+	sym_index sym_p = hash_table[hash(pool_p)];
+	cout << sym_p << endl;
+	while(sym_p >= current_environment() && sym_p != NULL_SYM) {
+		if(pool_compare(pool_p, sym_table[sym_p]->id) == 0) {
+			return sym_p;
+		} else {
+			sym_p = sym_table[sym_p]->hash_link;
+		}
+	}
 
 	return NULL_SYM;   
 }
@@ -645,11 +668,63 @@ void symbol_table::set_symbol_type(const sym_index sym_p,
    
 sym_index symbol_table::install_symbol(const pool_index pool_p,
 				       const sym_type tag) {
-		/* Your code here */
+	cout << "install_symbol" << endl;
+	symbol* symbol;
+
+	++sym_pos;
 	
-	    	// Return index to the symbol we just created.
-    		return 0;
-		
+
+	switch(tag) {
+	case SYM_ARRAY:
+		cout << "array" << endl;
+		symbol = new array_symbol(pool_p);
+		break;
+	case SYM_FUNC:
+		cout << "func" << endl;
+		symbol = new function_symbol(pool_p);
+		open_scope();
+		break;
+	case SYM_PROC:
+		cout << "proc" << endl;
+		symbol = new procedure_symbol(pool_p);
+		open_scope();
+		break;
+	case SYM_VAR:
+		cout << "var" << endl;
+		symbol = new variable_symbol(pool_p);
+		break;
+	case SYM_PARAM:
+		cout << "param" << endl;
+		symbol = new parameter_symbol(pool_p);
+		break;
+    case SYM_CONST:		
+		cout << "const" << endl;
+		symbol = new constant_symbol(pool_p);
+		break;
+	case SYM_NAMETYPE:		
+		cout << "nametype" << endl;
+		symbol = new nametype_symbol(pool_p);
+		break;
+	case SYM_UNDEF:
+		return NULL_SYM;
+		break;
+	default:
+		cout << "Illegal tag" << endl;
+	}
+
+	symbol->back_link = hash(pool_p);
+	symbol->hash_link = hash_table[symbol->back_link];
+
+	hash_table[symbol->back_link] = sym_pos;
+	sym_table[sym_pos] = symbol;
+	symbol->offset = (sym_pos - current_environment())*4;
+	symbol->level = current_level;
+
+	cout << "returning" << endl;
+
+
+	// Return index to the symbol we just created.
+    return sym_pos;
 }
 
 
@@ -905,10 +980,39 @@ sym_index symbol_table::enter_function(position_information *pos,
 
 /* Enter a procedure_symbol into the symbol table. */
 sym_index symbol_table::enter_procedure(position_information *pos,
-					const pool_index pool_p) {
-    // Your code here.
+					const pool_index pool_p) {	
+	sym_index sym_p;
 
-      return NULL_SYM;
+    // Install a procedure_symbol in the symbol table. 
+    // The function type will be set i labb3, the parser, because
+    // Diesel's grammar doesn't let us know the type of the symbol when
+    // the name is installed.
+    // When testing labb2, test nr 3 a function type will be set, 
+    // but it is done inside the testprogram symtabtest.cc
+    sym_p = install_symbol(pool_p, SYM_PROC);
+
+    // This extra mess is required for safe downcasting, so we can access
+    // the fields specific to this subclass of symbol.
+    symbol *tmp = sym_table[sym_p];
+    procedure_symbol *proc = tmp->get_procedure_symbol();
+
+    // Make sure it's not already been declared.
+    if(proc->tag != SYM_UNDEF) {
+	type_error(pos) << "Redeclaration: " << proc << endl;
+	return sym_p; // returns the original symbol
+    }
+
+    // Set up the function-specific fields.
+    proc->tag = SYM_PROC;
+    proc->last_parameter = NULL;    // Parameters are added later on.
+    
+    // This will grow as local variables and temporaries are added.
+    proc->ar_size = 0; 
+    proc->label_nr = get_next_label();
+
+    sym_table[sym_p] = proc;
+
+    return sym_p;
 }
 
 
