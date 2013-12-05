@@ -543,23 +543,14 @@ char *symbol_table::fix_string(const char *old_str) {
 
  /* Return sym_index pointer to the current environment, ie, block level. */
  sym_index symbol_table::current_environment() {
-	cout << block_table[current_level] << endl;
     return block_table[current_level];
 }
 
 
 /* Increase the current_level by one. */
  void symbol_table::open_scope() {
- 	/*  Your code here. Probably done */
-
-	cout << current_level << " " << sym_pos << endl;
-
-	//point at last symbol within a scope
-	block_table[current_level] = sym_pos;
-
-
-	//set current_level higher
 	++current_level;
+	block_table[current_level] = sym_pos;
 }
 
 
@@ -681,9 +672,17 @@ void symbol_table::set_symbol_type(const sym_index sym_p,
    
 sym_index symbol_table::install_symbol(const pool_index pool_p,
 				       const sym_type tag) {
+
+	sym_index sym_p = lookup_symbol(pool_p);
+	if(sym_p != NULL_SYM) {
+		return sym_p;
+	}
+
 	symbol* symbol;
 
 	++sym_pos;
+
+	
 
 	switch(tag) {
 	case SYM_ARRAY:
@@ -720,9 +719,12 @@ sym_index symbol_table::install_symbol(const pool_index pool_p,
 	hash_table[symbol->back_link] = sym_pos;
 	sym_table[sym_pos] = symbol;
 
-	symbol->offset = (sym_pos - current_environment())*4;
+	if(current_level==0 || tag == SYM_PROC || tag == SYM_FUNC) {
+		symbol->offset = 0;
+	} else {
+		symbol->offset = (sym_pos - current_environment())*4;
+	}
 
-	cout << "the current environment: " << current_environment() << endl;
 	symbol->level = current_level;
 
 	// Return index to the symbol we just created.
