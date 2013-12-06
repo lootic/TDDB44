@@ -584,13 +584,10 @@ sym_index symbol_table::close_scope() {
     a string_pool index. Starts searching in the current block level and
     follows hash links outwards. */
 sym_index symbol_table::lookup_symbol(const pool_index pool_p) {  //%% OK
-    // Your code here. 
-	sym_index sym_p = hash_table[hash(pool_p)];
-	while(sym_p >= current_environment() && sym_p != NULL_SYM) {
-		if(pool_compare(pool_p, sym_table[sym_p]->id) == 0) {
+	for(sym_index sym_p = hash_table[hash(pool_p)]; sym_p != NULL_SYM; sym_p = 
+		sym_table[sym_p]->hash_link){
+		if(pool_compare(pool_p, sym_table[sym_p]->id) == 1) {
 			return sym_p;
-		} else {
-			sym_p = sym_table[sym_p]->hash_link;
 		}
 	}
 
@@ -674,15 +671,11 @@ sym_index symbol_table::install_symbol(const pool_index pool_p,
 				       const sym_type tag) {
 
 	sym_index sym_p = lookup_symbol(pool_p);
-	if(sym_p != NULL_SYM) {
+	if(sym_p > current_environment()) {
 		return sym_p;
 	}
-
 	symbol* symbol;
-
 	++sym_pos;
-
-	
 
 	switch(tag) {
 	case SYM_ARRAY:
@@ -719,7 +712,7 @@ sym_index symbol_table::install_symbol(const pool_index pool_p,
 	hash_table[symbol->back_link] = sym_pos;
 	sym_table[sym_pos] = symbol;
 
-	if(current_level==0 || tag == SYM_PROC || tag == SYM_FUNC) {
+	if(current_level==0 || tag == SYM_PROC || tag == SYM_FUNC || tag == SYM_CONST) { //is this line ok? is there a better way to fix offset?
 		symbol->offset = 0;
 	} else {
 		symbol->offset = (sym_pos - current_environment())*4;
